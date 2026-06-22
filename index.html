@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imersão Profissional - Kanban Apple Style</title>
+    <style>
+        /* Estilo Base Inspirado no ecossistema Apple */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: #f5f5f7; /* Cinza claro oficial dos fundos Apple */
+            color: #1d1d1f; /* Texto quase preto padrão */
+            padding: 40px 20px;
+        }
+
+        header {
+            margin-bottom: 48px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #1d1d1f;
+            margin-bottom: 24px;
+        }
+
+        /* Formulário de Input Limpo e Elegante */
+        .form-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        input {
+            padding: 14px 16px;
+            width: 340px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #d2d2d7;
+            border-radius: 12px; /* Cantos arredondados suaves característicos */
+            font-size: 16px;
+            color: #1d1d1f;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            backdrop-filter: blur(20px); /* Efeito translúcido do iOS/macOS */
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #0071e3; /* Azul padrão Apple */
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+        }
+
+        /* Botões com transições orgânicas */
+        button {
+            padding: 14px 24px;
+            background-color: #0071e3; /* Botão principal azul */
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #0077ed;
+            transform: scale(1.02);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Tabuleiro Kanban */
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Colunas simulando os cards foscos de interfaces modernas */
+        .column {
+            background-color: rgba(232, 232, 237, 0.4);
+            border: 1px solid rgba(210, 210, 215, 0.4);
+            border-radius: 18px;
+            padding: 20px;
+            min-height: 500px;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+        }
+
+        .column h2 {
+            color: #1d1d1f;
+            font-size: 19px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+
+        /* Botão secundário cinza sutil */
+        .btn-clear {
+            padding: 6px 12px;
+            background-color: #e8e8ed;
+            color: #0071e3; /* Texto azul para links de ação secundária */
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+        }
+
+        .btn-clear:hover {
+            background-color: #d2d2d7;
+            color: #0077ed;
+            transform: none;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 440px;
+        }
+
+        /* Cartões brancos com sombras extremamente suaves e sutis */
+        .task-card {
+            background-color: #ffffff;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            cursor: grab;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .task-card:active {
+            cursor: grabbing;
+        }
+
+        .task-card span {
+            font-size: 15px;
+            color: #1d1d1f;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        /* Botão de excluir cinza discreto, vira vermelho no hover */
+        .task-actions button {
+            padding: 6px 10px;
+            background-color: #f5f5f7;
+            color: #86868b;
+            font-size: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .task-actions button:hover {
+            background-color: #ff3b30; /* Vermelho oficial do sistema Apple */
+            color: #ffffff;
+            transform: none;
+        }
+
+        /* Estado visual de arrastar fluído */
+        .dragging {
+            opacity: 0.3;
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Projetos</h1>
+        <div class="form-container">
+            <input type="text" id="task-input" placeholder="Nova tarefa...">
+            <button onclick="addTask()">Adicionar</button>
+        </div>
+    </header>
+
+    <main class="kanban-board">
+        <!-- Coluna: A Fazer -->
+        <div class="column">
+            <div class="column-header">
+                <h2>A Fazer</h2>
+            </div>
+            <div class="task-list" id="todo" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+        </div>
+
+        <!-- Coluna: Em Andamento -->
+        <div class="column">
+            <div class="column-header">
+                <h2>Em Andamento</h2>
+            </div>
+            <div class="task-list" id="doing" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+        </div>
+
+        <!-- Coluna: Concluído -->
+        <div class="column">
+            <div class="column-header">
+                <h2>Concluído</h2>
+                <button class="btn-clear" onclick="clearDoneTasks()">Limpar</button>
+            </div>
+            <div class="task-list" id="done" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+        </div>
+    </main>
+
+    <script>
+        let tasks = JSON.parse(localStorage.getItem('kanban_tasks')) || [];
+
+        document.addEventListener('DOMContentLoaded', renderTasks);
+
+        function saveToStorage() {
+            localStorage.setItem('kanban_tasks', JSON.stringify(tasks));
+        }
+
+        function addTask() {
+            const input = document.getElementById('task-input');
+            const taskText = input.value.trim();
+
+            if (taskText === '') {
+                alert('Por favor, digite uma tarefa válida.');
+                return;
+            }
+
+            const newTask = {
+                id: 'task-' + Date.now(),
+                text: taskText,
+                status: 'todo'
+            };
+
+            tasks.push(newTask);
+            saveToStorage();
+            renderTasks();
+            input.value = '';
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(task => task.id !== id);
+            saveToStorage();
+            renderTasks();
+        }
+
+        function clearDoneTasks() {
+            tasks = tasks.filter(task => task.status !== 'done');
+            saveToStorage();
+            renderTasks();
+        }
+
+        function renderTasks() {
+            document.getElementById('todo').innerHTML = '';
+            document.getElementById('doing').innerHTML = '';
+            document.getElementById('done').innerHTML = '';
+
+            tasks.forEach(task => {
+                const taskCard = document.createElement('div');
+                taskCard.className = 'task-card';
+                taskCard.id = task.id;
+                taskCard.draggable = true;
+                taskCard.ondragstart = drag;
+                taskCard.ondragend = dragEnd;
+
+                taskCard.innerHTML = `
+                    <span>${task.text}</span>
+                    <div class="task-actions">
+                        <button onclick="deleteTask('${task.id}')">Excluir</button>
+                    </div>
+                `;
+
+                const column = document.getElementById(task.status);
+                if (column) {
+                    column.appendChild(taskCard);
+                }
+            });
+        }
+
+        function drag(event) {
+            event.dataTransfer.setData("text/plain", event.target.id);
+            event.target.classList.add('dragging');
+        }
+
+        function dragEnd(event) {
+            event.target.classList.remove('dragging');
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const id = event.dataTransfer.getData("text/plain");
+            const draggedElement = document.getElementById(id);
+            
+            let targetList = event.target;
+            while (targetList && !targetList.classList.contains('task-list')) {
+                targetList = targetList.parentElement;
+            }
+
+            if (targetList) {
+                targetList.appendChild(draggedElement);
+                
+                const taskIndex = tasks.findIndex(task => task.id === id);
+                if (taskIndex !== -1) {
+                    tasks[taskIndex].status = targetList.id;
+                    saveToStorage();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
